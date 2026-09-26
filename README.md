@@ -113,7 +113,53 @@ The water-level information is displayed on the **Wokwi Serial Monitor** using U
 ---
 
 ## Program
+/*
+ * Convert ADC value into moisture percentage.
+ *
+ * ADC = 0    means approximately 100% wet.
+ * ADC = 4095 means approximately 0% wet.
+ */
+moisturePercentage =
+    100U - ((soilValue * 100U) / 4095U);
 
+/*
+ * Turn ON the pump when the soil becomes dry.
+ */
+if ((soilValue >= PUMP_ON_THRESHOLD) && (pumpStatus == 0))
+{
+  pumpStatus = 1;
+
+  HAL_GPIO_WritePin(
+      PUMP_LED_PORT,
+      PUMP_LED_PIN,
+      GPIO_PIN_SET);
+
+  printf("Soil is dry: Pump switched ON\r\n");
+}
+
+/*
+ * Turn OFF the pump when sufficient moisture is reached.
+ */
+else if ((soilValue <= PUMP_OFF_THRESHOLD) && (pumpStatus == 1))
+{
+  pumpStatus = 0;
+
+  HAL_GPIO_WritePin(
+      PUMP_LED_PORT,
+      PUMP_LED_PIN,
+      GPIO_PIN_RESET);
+
+  printf("Soil is wet: Pump switched OFF\r\n");
+}
+
+printf("ADC value: %lu | Moisture: %lu%% | Pump: %s\r\n",
+       (unsigned long)soilValue,
+       (unsigned long)moisturePercentage,
+       pumpStatus ? "ON" : "OFF");
+
+printf("------------------------------------\r\n");
+
+HAL_Delay(1000);
 
 ## Circuit Connections
 
@@ -176,6 +222,8 @@ GND  ---| GND                |
 ---
 
 ## Expected Output
+<img width="1035" height="806" alt="image" src="https://github.com/user-attachments/assets/4f5dc20e-d084-4544-9a52-3775efb174ff" />
+
 
 ### Low Water Level
 
